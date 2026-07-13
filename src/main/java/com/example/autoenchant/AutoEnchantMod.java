@@ -10,6 +10,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class AutoEnchantMod implements ClientModInitializer {
@@ -17,6 +18,10 @@ public class AutoEnchantMod implements ClientModInitializer {
     public static boolean enabled = false;
     public static KeyBinding openGuiKey;
     public static KeyBinding toggleKey;
+
+    // Category moi cua KeyBinding tu ban 1.21.9 tro len (thay the cho chuoi String truoc day)
+    private static final KeyBinding.Category CATEGORY =
+            KeyBinding.Category.create(Identifier.of("autoenchant", "main"));
 
     private enum State { IDLE, WAIT_BEFORE_CLICK, WAIT_GUI_OPEN }
     private State state = State.IDLE;
@@ -31,13 +36,13 @@ public class AutoEnchantMod implements ClientModInitializer {
         openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.autoenchant.open_gui",
                 GLFW.GLFW_KEY_RIGHT_SHIFT,
-                "category.autoenchant"
+                CATEGORY
         ));
 
         toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.autoenchant.toggle",
                 GLFW.GLFW_KEY_UNKNOWN,
-                "category.autoenchant"
+                CATEGORY
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
