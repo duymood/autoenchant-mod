@@ -104,11 +104,10 @@ public class AutoEnchantMod implements ClientModInitializer {
      */
     private void simulateLeftClick() {
         InputUtil.Key leftMouse = InputUtil.Type.MOUSE.createFromCode(GLFW.GLFW_MOUSE_BUTTON_LEFT);
-        KeyBinding.setKeyPressed(leftMouse, true);
-        KeyBinding.setKeyPressed(leftMouse, false);
+        KeyBinding.onKeyPressed(leftMouse);
     }
 
-    private void clickTargetSlotAndClose(MinecraftClient client, HandledScreen<?> screen) {
+    private void clickTargetSlotAndClose(MinecraftClient client, HadledScreen<?> screen) {
         ScreenHandler handler = screen.getScreenHandler();
         if (client.interactionManager != null && client.player != null) {
             client.interactionManager.clickSlot(
