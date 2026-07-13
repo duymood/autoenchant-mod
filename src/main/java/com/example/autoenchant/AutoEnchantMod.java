@@ -30,6 +30,11 @@ public class AutoEnchantMod implements ClientModInitializer {
     private static final int TICKS_WAIT_GUI = 10;
     private static final int TARGET_SLOT = 13;
 
+    // Auto attack
+    private static final int ATTACK_INTERVAL = 22; // 1.1 giây
+    private int attackTimer = ATTACK_INTERVAL;
+    private boolean pauseAutoAttack = false;
+
     @Override
     public void onInitializeClient() {
         openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -64,7 +69,18 @@ public class AutoEnchantMod implements ClientModInitializer {
 
         if (!enabled || client.player == null) {
             state = State.IDLE;
+            pauseAutoAttack = false;
+            attackTimer = ATTACK_INTERVAL;
             return;
+        }
+
+        // Auto attack
+        if (!pauseAutoAttack) {
+            attackTimer--;
+            if (attackTimer <= 0) {
+                simulateLeftClick();
+                attackTimer = ATTACK_INTERVAL;
+            }
         }
 
         switch (state) {
@@ -74,9 +90,12 @@ public class AutoEnchantMod implements ClientModInitializer {
                     tickCounter = TICKS_BEFORE_CLICK;
                 }
             }
+
             case WAIT_BEFORE_CLICK -> {
                 tickCounter--;
                 if (tickCounter <= 0) {
+                    pauseAutoAttack = true;
+
                     simulateLeftClick();
                     client.player.networkHandler.sendChatCommand("enchant");
 
@@ -84,12 +103,16 @@ public class AutoEnchantMod implements ClientModInitializer {
                     tickCounter = TICKS_WAIT_GUI;
                 }
             }
+
             case WAIT_GUI_OPEN -> {
                 tickCounter--;
+
                 if (client.currentScreen instanceof HandledScreen<?> handledScreen) {
                     clickTargetSlotAndClose(client, handledScreen);
                     state = State.IDLE;
                 } else if (tickCounter <= 0) {
+                    pauseAutoAttack = false;
+                    attackTimer = ATTACK_INTERVAL;
                     state = State.IDLE;
                 }
             }
@@ -97,18 +120,17 @@ public class AutoEnchantMod implements ClientModInitializer {
     }
 
     /**
-     * Gia lap 1 lan bam chuot trai that su (khong chi vung tay).
-     * Dua vao co che noi bo cua Minecraft: setKeyPressed danh dau nut duoc
-     * bam, roi client tu xu ly y het nhu khi nguoi choi tu bam chuot
-     * (tan cong / dao / tuong tac tuy vao thu dang nhin vao).
+     * Giả lập click chuột trái.
      */
     private void simulateLeftClick() {
-        InputUtil.Key leftMouse = InputUtil.Type.MOUSE.createFromCode(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        InputUtil.Key leftMouse =
+                InputUtil.Type.MOUSE.createFromCode(GLFW.GLFW_MOUSE_BUTTON_LEFT);
         KeyBinding.onKeyPressed(leftMouse);
     }
 
     private void clickTargetSlotAndClose(MinecraftClient client, HandledScreen<?> screen) {
         ScreenHandler handler = screen.getScreenHandler();
+
         if (client.interactionManager != null && client.player != null) {
             client.interactionManager.clickSlot(
                     handler.syncId,
@@ -118,7 +140,12 @@ public class AutoEnchantMod implements ClientModInitializer {
                     client.player
             );
         }
+
         client.player.closeHandledScreen();
         client.setScreen(null);
+
+        // Bật lại auto attack
+        pauseAutoAttack = false;
+        attackTimer = ATTACK_INTERVAL;
     }
 }
