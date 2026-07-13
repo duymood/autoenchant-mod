@@ -1,5 +1,5 @@
 {
-  "category.autoenchant": "Auto Enchant",
+  "key.categories.autoenchant.main": "Auto Enchant",
   "key.autoenchant.open_gui": "Open Auto Enchant GUI",
   "key.autoenchant.toggle": "Toggle Auto Enchant"
 }
