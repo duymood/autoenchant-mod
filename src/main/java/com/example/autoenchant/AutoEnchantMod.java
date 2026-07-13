@@ -107,7 +107,7 @@ public class AutoEnchantMod implements ClientModInitializer {
         KeyBinding.onKeyPressed(leftMouse);
     }
 
-    private void clickTargetSlotAndClose(MinecraftClient client, HadledScreen<?> screen) {
+    private void clickTargetSlotAndClose(MinecraftClient client, HandledScreen<?> screen) {
         ScreenHandler handler = screen.getScreenHandler();
         if (client.interactionManager != null && client.player != null) {
             client.interactionManager.clickSlot(
