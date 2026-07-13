@@ -6,10 +6,13 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 
 /**
- * GUI: 1 nut bat/tat + 1 nut doi phim tat ngay trong game,
- * khong can vao menu Controls cua Minecraft.
+ * GUI: 1 nut bat/tat + 1 nut doi phim tat ngay trong game.
+ * Viec bat phim/chuot moi dung GLFW polling trong tick(), tranh phai
+ * phu thuoc vao chu ky keyPressed/mouseClicked hay thay doi giua cac
+ * ban Minecraft.
  */
 public class AutoEnchantScreen extends Screen {
 
@@ -38,7 +41,7 @@ public class AutoEnchantScreen extends Screen {
                 rebindLabel(),
                 button -> {
                     listeningForKey = true;
-                    button.setMessage(Text.literal("> Bam phim moi <"));
+                    button.setMessage(Text.literal("> Bam phim moi (ESC de huy) <"));
                 }
         ).dimensions(centerX - 75, centerY, 150, 20).build();
 
@@ -56,26 +59,36 @@ public class AutoEnchantScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (listeningForKey) {
-            if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
-                listeningForKey = false;
-                rebindButton.setMessage(rebindLabel());
-                return true;
-            }
-            bindKey(InputUtil.Type.KEYSYM.createFromCode(keyCode));
-            return true;
+    public void tick() {
+        super.tick();
+        if (!listeningForKey) {
+            return;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
-    }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (listeningForKey) {
-            bindKey(InputUtil.Type.MOUSE.createFromCode(button));
-            return true;
+        long handle = MinecraftClient.getInstance().getWindow().getHandle();
+
+        if (GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS) {
+            listeningForKey = false;
+            rebindButton.setMessage(rebindLabel());
+            return;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+
+        for (int button = 0; button <= 7; button++) {
+            if (GLFW.glfwGetMouseButton(handle, button) == GLFW.GLFW_PRESS) {
+                bindKey(InputUtil.Type.MOUSE.createFromCode(button));
+                return;
+            }
+        }
+
+        for (int key = 32; key <= 348; key++) {
+            if (key == GLFW.GLFW_KEY_ESCAPE) {
+                continue;
+            }
+            if (GLFW.glfwGetKey(handle, key) == GLFW.GLFW_PRESS) {
+                bindKey(InputUtil.Type.KEYSYM.createFromCode(key));
+                return;
+            }
+        }
     }
 
     private void bindKey(InputUtil.Key key) {
