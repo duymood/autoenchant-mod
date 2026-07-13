@@ -6,10 +6,10 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -19,7 +19,6 @@ public class AutoEnchantMod implements ClientModInitializer {
     public static KeyBinding openGuiKey;
     public static KeyBinding toggleKey;
 
-    // Category moi cua KeyBinding tu ban 1.21.9 tro len (thay the cho chuoi String truoc day)
     private static final KeyBinding.Category CATEGORY =
             KeyBinding.Category.create(Identifier.of("autoenchant", "main"));
 
@@ -78,7 +77,7 @@ public class AutoEnchantMod implements ClientModInitializer {
             case WAIT_BEFORE_CLICK -> {
                 tickCounter--;
                 if (tickCounter <= 0) {
-                    client.player.swingHand(Hand.MAIN_HAND);
+                    simulateLeftClick();
                     client.player.networkHandler.sendChatCommand("enchant");
 
                     state = State.WAIT_GUI_OPEN;
@@ -95,6 +94,18 @@ public class AutoEnchantMod implements ClientModInitializer {
                 }
             }
         }
+    }
+
+    /**
+     * Gia lap 1 lan bam chuot trai that su (khong chi vung tay).
+     * Dua vao co che noi bo cua Minecraft: setKeyPressed danh dau nut duoc
+     * bam, roi client tu xu ly y het nhu khi nguoi choi tu bam chuot
+     * (tan cong / dao / tuong tac tuy vao thu dang nhin vao).
+     */
+    private void simulateLeftClick() {
+        InputUtil.Key leftMouse = InputUtil.Type.MOUSE.createFromCode(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        KeyBinding.setKeyPressed(leftMouse, true);
+        KeyBinding.setKeyPressed(leftMouse, false);
     }
 
     private void clickTargetSlotAndClose(MinecraftClient client, HandledScreen<?> screen) {
